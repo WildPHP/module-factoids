@@ -1,0 +1,23 @@
+{
+    "name": "wildphp/module-factoids",
+    "description": "Factoids module for WildPHP",
+    "license": "GPL-3.0",
+    "authors": [
+        {
+            "name": "Yoshi2889",
+            "email": "rick.2889@gmail.com"
+        }
+    ],
+    "require": {
+        "wildphp/module-ircconnection": "^2.0",
+        "wildphp/module-commandparser": "^2.0",
+        "wildphp/module-auth": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WildPHP\\Modules\\Factoids\\": "src"
+        }
+    },
+    "minimum-stability": "alpha",
+    "prefer-stable": true
+}
