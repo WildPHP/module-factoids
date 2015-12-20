@@ -1,4 +1,4 @@
-# Auth Module
+# Factoids Module
 [![Build Status](https://scrutinizer-ci.com/g/WildPHP/module-factoids/badges/build.png?b=master)](https://scrutinizer-ci.com/g/WildPHP/module-factoids/build-status/master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/WildPHP/module-factoids/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/WildPHP/module-factoids/?branch=master)
 [![Latest Stable Version](https://poser.pugx.org/wildphp/module-factoids/v/stable)](https://packagist.org/packages/wildphp/module-factoids)
