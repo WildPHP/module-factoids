@@ -101,7 +101,7 @@ class Factoids extends BaseModule
 		if (!$auth->nicknameIsTrusted($nickname))
 			return;
 
-		$pieces = explode(' ', $params, 1);
+		$pieces = explode(' ', $params, 2);
 
 		if (count($pieces) < 2)
 			return;
