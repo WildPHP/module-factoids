@@ -9,9 +9,7 @@
         }
     ],
     "require": {
-        "wildphp/module-ircconnection": "^2.0",
-        "wildphp/module-commandparser": "^2.0",
-        "wildphp/module-auth": "^2.0"
+        "wildphp/wild-irc-bot": "^3.0"
     },
     "autoload": {
         "psr-4": {
