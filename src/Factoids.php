@@ -355,9 +355,11 @@ class Factoids
 		}
 
 		$factoidPool = $this->getPoolForChannelByString($target);
-		$factoids = $factoidPool->toArray();
 
-		if (empty($factoids))
+		if (!empty($factoidPool))
+			$factoids = $factoidPool->toArray();
+
+		if (empty($factoidPool) || empty($factoids))
 		{
 			Queue::fromContainer($container)->privmsg($source->getName(), 'There are no factoids for target "' . $target . '"');
 			return;
