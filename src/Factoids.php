@@ -91,12 +91,13 @@ class Factoids
 		$dataStorage = new DataStorage('factoidStorage');
 		$data = $dataStorage->getAll();
 
-		foreach ($data as $channel => $factoids)
+		foreach ($data as $factoidData)
 		{
+			$channel = $factoidData['channel'];
 			$pool = new FactoidPool('\WildPHP\Modules\Factoids\Factoid');
 			$this->factoidPools[$channel] = $pool;
 
-			$pool->populateFromSavedArray($factoids);
+			$pool->populateFromSavedArray($factoidData['pool']);
 		}
 	}
 
@@ -105,9 +106,12 @@ class Factoids
 		$dataStorage = new DataStorage('factoidStorage');
 		$dataStorage->flush();
 
+		$i = 0;
 		foreach ($this->factoidPools as $channel => $pool)
 		{
-			$dataStorage->set($channel, $pool->toSaveableArray());
+			$i++;
+			$array = ['channel' => $channel, 'pool' => $pool->toSaveableArray()];
+			$dataStorage->set($i, $array);
 		}
 	}
 
@@ -356,14 +360,13 @@ class Factoids
 
 		$factoidPool = $this->getPoolForChannelByString($target);
 
-		if (!empty($factoidPool))
-			$factoids = $factoidPool->toArray();
-
-		if (empty($factoidPool) || empty($factoids))
+		if (empty($factoidPool) || empty($factoidPool->toArray()))
 		{
 			Queue::fromContainer($container)->privmsg($source->getName(), 'There are no factoids for target "' . $target . '"');
 			return;
 		}
+
+		$factoids = $factoidPool->toArray();
 
 		$names = [];
 		foreach ($factoids as $factoid)
