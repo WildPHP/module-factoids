@@ -17,7 +17,7 @@ use WildPHP\Core\Configuration\Configuration;
 use WildPHP\Core\Connection\IRCMessages\RPL_ENDOFNAMES;
 use WildPHP\Core\Connection\Queue;
 use WildPHP\Core\ContainerTrait;
-use WildPHP\Core\DataStorage\DataStorage;
+use WildPHP\Core\DataStorage\DataStorageFactory;
 use WildPHP\Core\EventEmitter;
 use WildPHP\Core\Users\User;
 
@@ -90,7 +90,7 @@ class Factoids
 
 	public function loadFactoidData()
 	{
-		$dataStorage = new DataStorage('factoidStorage');
+		$dataStorage = DataStorageFactory::getStorage('factoidStorage');
 		$data = $dataStorage->getAll();
 
 		foreach ($data as $factoidData)
@@ -105,7 +105,7 @@ class Factoids
 
 	public function saveFactoidData()
 	{
-		$dataStorage = new DataStorage('factoidStorage');
+		$dataStorage = DataStorageFactory::getStorage('factoidStorage');
 		$dataStorage->flush();
 
 		$i = 0;
