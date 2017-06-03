@@ -83,6 +83,8 @@ class Factoids
 		$commandHelp->addPage('Usage #3: factoidinfo global [key]');
 		CommandHandler::fromContainer($container)->registerCommand('factoidinfo', [$this, 'factoidinfoCommand'], $commandHelp, 1, 2);
 
+		EventEmitter::fromContainer($container)->on('telegram.command.factoid', [$this, 'factoidTGCommand']);
+
 		$this->setContainer($container);
 	}
 
@@ -187,6 +189,20 @@ class Factoids
 		$key = $command;
 		$target = $source->getName();
 
+		$message = $this->getFactoidMessage($command, $args, $target);
+
+		Queue::fromContainer($container)->privmsg($source->getName(), $message);
+	}
+
+	/**
+	 * @param string $key
+	 * @param array $args
+	 * @param string $target
+	 *
+	 * @return bool|string
+	 */
+	public function getFactoidMessage(string $key, array $args, string $target)
+	{
 		$globalFactoidPool = $this->getPoolForChannelByString('global');
 		$factoidPool = $this->getPoolForChannelByString($target);
 
@@ -202,7 +218,7 @@ class Factoids
 			});
 
 		if (empty($factoid))
-			return;
+			return false;
 
 		$at = array_shift($args);
 		$tnickname = array_shift($args);
@@ -212,15 +228,15 @@ class Factoids
 			'$nick',
 			'$channel',
 		], [
-			$user->getNickname(),
-			$source->getName()
+			$nickname,
+			$target
 		], $factoid->getContents());
 
 		$message = !empty($nickname) ? $nickname . ': ' : '';
 		$message .= $contents;
-
-		Queue::fromContainer($container)->privmsg($source->getName(), $message);
+		return $message;
 	}
+
 
 	/**
 	 * @param Channel $source
@@ -497,5 +513,30 @@ class Factoids
 
 		Queue::fromContainer($container)->privmsg($source->getName(), $message);
 		Queue::fromContainer($container)->privmsg($source->getName(), $factoid->getContents());
+	}
+
+	/**
+	 * @param \Telegram $telegram
+	 * @param mixed $chat_id
+	 * @param array $args
+	 * @param string $channel
+	 * @param string $username
+	 */
+	public function factoidTGCommand(\Telegram $telegram, $chat_id, array $args, string $channel, string $username)
+	{
+		if (empty($args))
+			return;
+
+		$key = array_shift($args);
+
+		$message = $this->getFactoidMessage($key, $args, $channel);
+		if (empty($message))
+		{
+			$telegram->sendMessage(['chat_id' => $chat_id, 'text' => 'No such factoid']);
+			return;
+		}
+		$telegram->sendMessage(['chat_id' => $chat_id, 'text' => $message]);
+		Queue::fromContainer($this->getContainer())->privmsg($channel, '[TG] Factoid "' . $key . '" requested by ' . $username);
+		Queue::fromContainer($this->getContainer())->privmsg($channel, $message);
 	}
 }
