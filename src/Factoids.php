@@ -186,10 +186,9 @@ class Factoids
 		if (CommandHandler::fromContainer($container)->getCommandDictionary()->keyExists($command))
 			return;
 
-		$key = $command;
 		$target = $source->getName();
 
-		$message = $this->getFactoidMessage($command, $args, $target);
+		$message = $this->getFactoidMessage($command, $args, $target, $user->getNickname());
 
 		Queue::fromContainer($container)->privmsg($source->getName(), $message);
 	}
@@ -198,10 +197,11 @@ class Factoids
 	 * @param string $key
 	 * @param array $args
 	 * @param string $target
+	 * @param string $userNickname
 	 *
 	 * @return bool|string
 	 */
-	public function getFactoidMessage(string $key, array $args, string $target)
+	public function getFactoidMessage(string $key, array $args, string $target, string $userNickname)
 	{
 		$globalFactoidPool = $this->getPoolForChannelByString('global');
 		$factoidPool = $this->getPoolForChannelByString($target);
@@ -227,9 +227,11 @@ class Factoids
 		$contents = str_ireplace([
 			'$nick',
 			'$channel',
+			'$author'
 		], [
-			$nickname,
-			$target
+			!empty($nickname) ? $nickname : $userNickname,
+			$target,
+			$userNickname
 		], $factoid->getContents());
 
 		$message = !empty($nickname) ? $nickname . ': ' : '';
@@ -529,7 +531,7 @@ class Factoids
 
 		$key = array_shift($args);
 
-		$message = $this->getFactoidMessage($key, $args, $channel);
+		$message = $this->getFactoidMessage($key, $args, $channel, $username);
 		if (empty($message))
 		{
 			$telegram->sendMessage(['chat_id' => $chat_id, 'text' => 'No such factoid']);
