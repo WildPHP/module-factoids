@@ -1,9 +1,21 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: rick2
- * Date: 24-4-2017
- * Time: 13:09
+ * WildPHP - an advanced and easily extensible IRC bot written in PHP
+ * Copyright (C) 2017 WildPHP
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 namespace WildPHP\Modules\Factoids;
@@ -30,7 +42,7 @@ class Factoids
 	public function __construct(ComponentContainer $container)
 	{
 		EventEmitter::fromContainer($container)->on('irc.command', [$this, 'displayFactoid']);
-		EventEmitter::fromContainer($container)->on('irc.line.in.366', [$this, 'createPoolForChannel']);
+		EventEmitter::fromContainer($container)->on('irc.line.in.366', [$this, 'autoCreatePoolForChannel']);
 		register_shutdown_function([$this, 'saveFactoidData']);
 		$this->loadFactoidData();
 
@@ -119,9 +131,8 @@ class Factoids
 
 	/**
 	 * @param RPL_ENDOFNAMES $incomingIrcMessage
-	 * @param Queue $queue
 	 */
-	public function createPoolForChannel(RPL_ENDOFNAMES $incomingIrcMessage, Queue $queue)
+	public function autoCreatePoolForChannel(RPL_ENDOFNAMES $incomingIrcMessage)
 	{
 		$channel = $incomingIrcMessage->getChannel();
 
@@ -152,24 +163,21 @@ class Factoids
 
 	/**
 	 * @param Channel $channel
-	 * @return bool|FactoidPool
+	 * @return FactoidPool
 	 */
-	public function getPoolForChannel(Channel $channel)
+	public function getPoolForChannel(Channel $channel): FactoidPool
 	{
-		if (!$this->poolExistsForChannel($channel))
-			return false;
-
-		return $this->factoidPools[$channel->getName()];
+		return $this->getPoolForChannelByString($channel->getName());
 	}
 
 	/**
 	 * @param string $channel
-	 * @return bool|FactoidPool
+	 * @return FactoidPool
 	 */
-	public function getPoolForChannelByString(string $channel)
+	public function getPoolForChannelByString(string $channel): FactoidPool
 	{
 		if (!$this->poolExistsForChannelByString($channel))
-			return false;
+			$this->factoidPools[$channel] = new FactoidPool(Factoid::class);
 
 		return $this->factoidPools[$channel];
 	}
@@ -384,6 +392,7 @@ class Factoids
 			return;
 		}
 
+		/** @var Factoid[] $factoids */
 		$factoids = $factoidPool->toArray();
 
 		$names = [];
