@@ -45,7 +45,7 @@ class Factoids
 			->on('irc.command', [$this, 'displayFactoid']);
 		EventEmitter::fromContainer($container)
 			->on('irc.line.in.366', [$this, 'autoCreatePoolForChannel']);
-		
+
 		$this->loadFactoidData();
 
 		$commandHelp = new CommandHelp();
@@ -223,12 +223,16 @@ class Factoids
 	public function getFactoidMessage(string $key, array $args, string $target, string $userNickname)
 	{
 		$globalFactoidPool = $this->getPoolForChannelByString('global');
-		$factoidPool = $this->getPoolForChannelByString($target);
 
-		$factoid = $factoidPool->find(function (Factoid $factoid) use ($key)
+		if (!empty($target))
 		{
-			return $key == $factoid->getName();
-		});
+			$factoidPool = $this->getPoolForChannelByString($target);
+
+			$factoid = $factoidPool->find(function (Factoid $factoid) use ($key)
+			{
+				return $key == $factoid->getName();
+			});
+		}
 
 		if (empty($factoid))
 			$factoid = $globalFactoidPool->find(function (Factoid $factoid) use ($key)
@@ -607,9 +611,13 @@ class Factoids
 			return;
 		}
 		$telegram->sendMessage(['chat_id' => $chat_id, 'text' => $message]);
-		Queue::fromContainer($this->getContainer())
-			->privmsg($channel, '[TG] Factoid "' . $key . '" requested by ' . $username);
-		Queue::fromContainer($this->getContainer())
-			->privmsg($channel, $message);
+
+		if (!empty($channel))
+		{
+			Queue::fromContainer($this->getContainer())
+				->privmsg($channel, '[TG] Factoid "' . $key . '" requested by ' . $username);
+			Queue::fromContainer($this->getContainer())
+				->privmsg($channel, $message);
+		}
 	}
 }
