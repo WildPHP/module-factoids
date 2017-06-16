@@ -45,8 +45,7 @@ class Factoids
 			->on('irc.command', [$this, 'displayFactoid']);
 		EventEmitter::fromContainer($container)
 			->on('irc.line.in.366', [$this, 'autoCreatePoolForChannel']);
-
-		register_shutdown_function([$this, 'saveFactoidData']);
+		
 		$this->loadFactoidData();
 
 		$commandHelp = new CommandHelp();
