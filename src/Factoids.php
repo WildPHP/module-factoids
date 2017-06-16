@@ -41,61 +41,65 @@ class Factoids
 
 	public function __construct(ComponentContainer $container)
 	{
-		EventEmitter::fromContainer($container)->on('irc.command', [$this, 'displayFactoid']);
-		EventEmitter::fromContainer($container)->on('irc.line.in.366', [$this, 'autoCreatePoolForChannel']);
+		EventEmitter::fromContainer($container)
+			->on('irc.command', [$this, 'displayFactoid']);
+		EventEmitter::fromContainer($container)
+			->on('irc.line.in.366', [$this, 'autoCreatePoolForChannel']);
+
 		register_shutdown_function([$this, 'saveFactoidData']);
 		$this->loadFactoidData();
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Adds a new factoid to the current (or other) channel.');
-		$commandHelp->addPage('Usage #1: addfactoid [key] [string]');
+		$commandHelp->addPage('Adds a new factoid to the current (or other) channel. Usage #1: addfactoid [key] [string]');
 		$commandHelp->addPage('Usage #2: addfactoid [#channel] [key] [string]');
 		$commandHelp->addPage('Usage #3: addfactoid global [key] [string]');
-		CommandHandler::fromContainer($container)->registerCommand('addfactoid', [$this, 'addfactoidCommand'], $commandHelp, 2, -1, 'addfactoid');
+		CommandHandler::fromContainer($container)
+			->registerCommand('addfactoid', [$this, 'addfactoidCommand'], $commandHelp, 2, -1, 'addfactoid');
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Removes a factoid from the current (or other) channel.');
-		$commandHelp->addPage('Usage #1: removefactoid [key]');
+		$commandHelp->addPage('Removes a factoid from the current (or other) channel. Usage #1: removefactoid [key]');
 		$commandHelp->addPage('Usage #2: removefactoid [#channel] [key]');
 		$commandHelp->addPage('Usage #3: removefactoid global [key] [string]');
-		CommandHandler::fromContainer($container)->registerCommand('removefactoid', [$this, 'removefactoidCommand'], $commandHelp, 1, 2, 'removefactoid');
+		CommandHandler::fromContainer($container)
+			->registerCommand('removefactoid', [$this, 'removefactoidCommand'], $commandHelp, 1, 2, 'removefactoid');
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Edits a factoid to contain the specified string.');
-		$commandHelp->addPage('Usage #1: editfactoid [key] [string]');
+		$commandHelp->addPage('Edits a factoid to contain the specified string. Usage #1: editfactoid [key] [string]');
 		$commandHelp->addPage('Usage #2: editfactoid [#channel] [key] [string]');
 		$commandHelp->addPage('Usage #3: editfactoid global [key] [string]');
-		CommandHandler::fromContainer($container)->registerCommand('editfactoid', [$this, 'editfactoidCommand'], $commandHelp, 2, -1, 'editfactoid');
+		CommandHandler::fromContainer($container)
+			->registerCommand('editfactoid', [$this, 'editfactoidCommand'], $commandHelp, 2, -1, 'editfactoid');
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Lists factoids in a given channel.');
-		$commandHelp->addPage('Usage #1: listfactoids');
+		$commandHelp->addPage('Lists factoids in a given channel. Usage #1: listfactoids');
 		$commandHelp->addPage('Usage #2: listfactoids [#channel]');
 		$commandHelp->addPage('Usage #3: listfactoids global');
-		CommandHandler::fromContainer($container)->registerCommand('listfactoids', [$this, 'listfactoidsCommand'], $commandHelp, 0, 1);
+		CommandHandler::fromContainer($container)
+			->registerCommand('listfactoids', [$this, 'listfactoidsCommand'], $commandHelp, 0, 1);
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Moves a factoid between channels.');
-		$commandHelp->addPage('Usage #1: movefactoid [key] [#target_channel]');
+		$commandHelp->addPage('Moves a factoid between channels. Usage #1: movefactoid [key] [#target_channel]');
 		$commandHelp->addPage('Usage #2: movefactoid [key] [#source_channel] [#target_channel]');
 		$commandHelp->addPage('Usage #3: movefactoid [key] global [#target_channel] (or reverse)');
-		CommandHandler::fromContainer($container)->registerCommand('movefactoid', [$this, 'movefactoidCommand'], $commandHelp, 2, 3, 'movefactoid');
+		CommandHandler::fromContainer($container)
+			->registerCommand('movefactoid', [$this, 'movefactoidCommand'], $commandHelp, 2, 3, 'movefactoid');
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Renames a factoid.');
-		$commandHelp->addPage('Usage #1: renamefactoid [key] [new name]');
+		$commandHelp->addPage('Renames a factoid. Usage #1: renamefactoid [key] [new name]');
 		$commandHelp->addPage('Usage #2: renamefactoid [#channel] [key] [new name]');
 		$commandHelp->addPage('Usage #3: renamefactoid global [key] [new name]');
-		CommandHandler::fromContainer($container)->registerCommand('renamefactoid', [$this, 'renamefactoidCommand'], $commandHelp, 2, 3, 'renamefactoid');
+		CommandHandler::fromContainer($container)
+			->registerCommand('renamefactoid', [$this, 'renamefactoidCommand'], $commandHelp, 2, 3, 'renamefactoid');
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Displays info about a factoid.');
-		$commandHelp->addPage('Usage #1: factoidinfo [key]');
+		$commandHelp->addPage('Displays info about a factoid. Usage #1: factoidinfo [key]');
 		$commandHelp->addPage('Usage #2: factoidinfo [#channel] [key]');
 		$commandHelp->addPage('Usage #3: factoidinfo global [key]');
-		CommandHandler::fromContainer($container)->registerCommand('factoidinfo', [$this, 'factoidinfoCommand'], $commandHelp, 1, 2);
+		CommandHandler::fromContainer($container)
+			->registerCommand('factoidinfo', [$this, 'factoidinfoCommand'], $commandHelp, 1, 2);
 
-		EventEmitter::fromContainer($container)->on('telegram.command.factoid', [$this, 'factoidTGCommand']);
+		EventEmitter::fromContainer($container)
+			->on('telegram.command.factoid', [$this, 'factoidTGCommand']);
 
 		$this->setContainer($container);
 	}
@@ -145,6 +149,7 @@ class Factoids
 
 	/**
 	 * @param Channel $channel
+	 *
 	 * @return bool
 	 */
 	public function poolExistsForChannel(Channel $channel): bool
@@ -154,6 +159,7 @@ class Factoids
 
 	/**
 	 * @param string $channel
+	 *
 	 * @return bool
 	 */
 	public function poolExistsForChannelByString(string $channel): bool
@@ -163,6 +169,7 @@ class Factoids
 
 	/**
 	 * @param Channel $channel
+	 *
 	 * @return FactoidPool
 	 */
 	public function getPoolForChannel(Channel $channel): FactoidPool
@@ -172,6 +179,7 @@ class Factoids
 
 	/**
 	 * @param string $channel
+	 *
 	 * @return FactoidPool
 	 */
 	public function getPoolForChannelByString(string $channel): FactoidPool
@@ -191,14 +199,18 @@ class Factoids
 	 */
 	public function displayFactoid(string $command, Channel $source, User $user, $args, ComponentContainer $container)
 	{
-		if (CommandHandler::fromContainer($container)->getCommandDictionary()->keyExists($command))
+		if (CommandHandler::fromContainer($container)
+			->getCommandDictionary()
+			->keyExists($command)
+		)
 			return;
 
 		$target = $source->getName();
 
 		$message = $this->getFactoidMessage($command, $args, $target, $user->getNickname());
 
-		Queue::fromContainer($container)->privmsg($source->getName(), $message);
+		Queue::fromContainer($container)
+			->privmsg($source->getName(), $message);
 	}
 
 	/**
@@ -244,6 +256,7 @@ class Factoids
 
 		$message = !empty($nickname) ? $nickname . ': ' : '';
 		$message .= $contents;
+
 		return $message;
 	}
 
@@ -257,7 +270,9 @@ class Factoids
 	public function addfactoidCommand(Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)->get('serverConfig.chantypes')->getValue();
+		$prefix = Configuration::fromContainer($container)
+			->get('serverConfig.chantypes')
+			->getValue();
 		if ($args[0] == 'global' || Channel::isValidName($args[0], $prefix))
 		{
 			$target = array_shift($args);
@@ -266,9 +281,14 @@ class Factoids
 		$key = array_shift($args);
 		$string = implode(' ', $args);
 
-		if (CommandHandler::fromContainer($this->getContainer())->getCommandDictionary()->keyExists($key))
+		if (CommandHandler::fromContainer($this->getContainer())
+			->getCommandDictionary()
+			->keyExists($key)
+		)
 		{
-			Queue::fromContainer($container)->privmsg($source->getName(), $user->getNickname() . ', a command with the same name already exists.');
+			Queue::fromContainer($container)
+				->privmsg($source->getName(), $user->getNickname() . ', a command with the same name already exists.');
+
 			return;
 		}
 
@@ -281,7 +301,9 @@ class Factoids
 
 		if (!empty($testFactoidExists))
 		{
-			Queue::fromContainer($container)->privmsg($source->getName(), $user->getNickname() . ', a factoid with the same name already exists in this channel.');
+			Queue::fromContainer($container)
+				->privmsg($source->getName(), $user->getNickname() . ', a factoid with the same name already exists in this channel.');
+
 			return;
 		}
 
@@ -292,7 +314,9 @@ class Factoids
 		$factoid->setCreatedTime(time());
 		$factoidPool->add($factoid);
 
-		Queue::fromContainer($container)->privmsg($source->getName(), $user->getNickname() . ', successfully created factoid with key "' . $key . '" for target "' . $target . '".');
+		Queue::fromContainer($container)
+			->privmsg($source->getName(),
+				$user->getNickname() . ', successfully created factoid with key "' . $key . '" for target "' . $target . '".');
 		$this->saveFactoidData();
 	}
 
@@ -305,7 +329,9 @@ class Factoids
 	public function removefactoidCommand(Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)->get('serverConfig.chantypes')->getValue();
+		$prefix = Configuration::fromContainer($container)
+			->get('serverConfig.chantypes')
+			->getValue();
 		if ($args[0] == 'global' || Channel::isValidName($args[0], $prefix))
 		{
 			$target = array_shift($args);
@@ -322,11 +348,15 @@ class Factoids
 
 		if (empty($factoid))
 		{
-			Queue::fromContainer($container)->privmsg($source->getName(), $user->getNickname() . ', a factoid with that name does not exist.');
+			Queue::fromContainer($container)
+				->privmsg($source->getName(), $user->getNickname() . ', a factoid with that name does not exist.');
+
 			return;
 		}
 
-		Queue::fromContainer($container)->privmsg($source->getName(), $user->getNickname() . ', successfully removed factoid with key "' . $key . '" for target "' . $target . '".');
+		Queue::fromContainer($container)
+			->privmsg($source->getName(),
+				$user->getNickname() . ', successfully removed factoid with key "' . $key . '" for target "' . $target . '".');
 		$this->saveFactoidData();
 	}
 
@@ -339,7 +369,9 @@ class Factoids
 	public function editfactoidCommand(Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)->get('serverConfig.chantypes')->getValue();
+		$prefix = Configuration::fromContainer($container)
+			->get('serverConfig.chantypes')
+			->getValue();
 		if ($args[0] == 'global' || Channel::isValidName($args[0], $prefix))
 		{
 			$target = array_shift($args);
@@ -357,7 +389,9 @@ class Factoids
 
 		if (empty($factoid))
 		{
-			Queue::fromContainer($container)->privmsg($source->getName(), $user->getNickname() . ', a factoid with that name does not exist.');
+			Queue::fromContainer($container)
+				->privmsg($source->getName(), $user->getNickname() . ', a factoid with that name does not exist.');
+
 			return;
 		}
 
@@ -365,7 +399,9 @@ class Factoids
 		$factoid->setEditedTime(time());
 		$factoid->setEditedByAccount($user->getIrcAccount());
 
-		Queue::fromContainer($container)->privmsg($source->getName(), $user->getNickname() . ', successfully edited factoid with key "' . $key . '" for target "' . $target . '".');
+		Queue::fromContainer($container)
+			->privmsg($source->getName(),
+				$user->getNickname() . ', successfully edited factoid with key "' . $key . '" for target "' . $target . '".');
 		$this->saveFactoidData();
 	}
 
@@ -378,7 +414,9 @@ class Factoids
 	public function listfactoidsCommand(Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)->get('serverConfig.chantypes')->getValue();
+		$prefix = Configuration::fromContainer($container)
+			->get('serverConfig.chantypes')
+			->getValue();
 		if (!empty($args[0]) && ($args[0] == 'global' || Channel::isValidName($args[0], $prefix)))
 		{
 			$target = array_shift($args);
@@ -388,7 +426,9 @@ class Factoids
 
 		if (empty($factoidPool) || empty($factoidPool->toArray()))
 		{
-			Queue::fromContainer($container)->privmsg($source->getName(), 'There are no factoids for target "' . $target . '"');
+			Queue::fromContainer($container)
+				->privmsg($source->getName(), 'There are no factoids for target "' . $target . '"');
+
 			return;
 		}
 
@@ -401,7 +441,8 @@ class Factoids
 
 		$pieces = array_chunk($names, 10);
 		foreach ($pieces as $piece)
-			Queue::fromContainer($container)->privmsg($source->getName(), 'Factoids for target "' . $target . '": ' . implode(', ', $piece));
+			Queue::fromContainer($container)
+				->privmsg($source->getName(), 'Factoids for target "' . $target . '": ' . implode(', ', $piece));
 	}
 
 	/**
@@ -421,7 +462,9 @@ class Factoids
 
 		if (empty($newFactoidPool))
 		{
-			Queue::fromContainer($container)->privmsg($source->getName(), 'The target "' . $newTarget . '" does not exist or is not loaded.');
+			Queue::fromContainer($container)
+				->privmsg($source->getName(), 'The target "' . $newTarget . '" does not exist or is not loaded.');
+
 			return;
 		}
 
@@ -432,7 +475,9 @@ class Factoids
 
 		if (empty($factoid))
 		{
-			Queue::fromContainer($container)->privmsg($source->getName(), $user->getNickname() . ', a factoid with that name does not exist.');
+			Queue::fromContainer($container)
+				->privmsg($source->getName(), $user->getNickname() . ', a factoid with that name does not exist.');
+
 			return;
 		}
 
@@ -442,7 +487,10 @@ class Factoids
 		});
 		$newFactoidPool->add($factoid);
 
-		Queue::fromContainer($container)->privmsg($source->getName(), $user->getNickname() . ', successfully moved factoid with key "' . $key . '" from target "' . $target . '" to target "' . $newTarget . '".');
+		Queue::fromContainer($container)
+			->privmsg($source->getName(),
+				$user->getNickname() . ', successfully moved factoid with key "' . $key . '" from target "' . $target . '" to target "' . $newTarget .
+				'".');
 		$this->saveFactoidData();
 	}
 
@@ -455,7 +503,9 @@ class Factoids
 	public function renamefactoidCommand(Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)->get('serverConfig.chantypes')->getValue();
+		$prefix = Configuration::fromContainer($container)
+			->get('serverConfig.chantypes')
+			->getValue();
 		if ($args[0] == 'global' || Channel::isValidName($args[0], $prefix))
 		{
 			$target = array_shift($args);
@@ -473,12 +523,16 @@ class Factoids
 
 		if (empty($factoid))
 		{
-			Queue::fromContainer($container)->privmsg($source->getName(), $user->getNickname() . ', a factoid with that name does not exist.');
+			Queue::fromContainer($container)
+				->privmsg($source->getName(), $user->getNickname() . ', a factoid with that name does not exist.');
+
 			return;
 		}
 
 		$factoid->setName($newKey);
-		Queue::fromContainer($container)->privmsg($source->getName(), $user->getNickname() . ', successfully renamed factoid with key "' . $key . '" to "' . $newKey . '" for target "' . $target . '".');
+		Queue::fromContainer($container)
+			->privmsg($source->getName(),
+				$user->getNickname() . ', successfully renamed factoid with key "' . $key . '" to "' . $newKey . '" for target "' . $target . '".');
 		$this->saveFactoidData();
 	}
 
@@ -491,7 +545,9 @@ class Factoids
 	public function factoidinfoCommand(Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)->get('serverConfig.chantypes')->getValue();
+		$prefix = Configuration::fromContainer($container)
+			->get('serverConfig.chantypes')
+			->getValue();
 		if (!empty($args[0]) && ($args[0] == 'global' || Channel::isValidName($args[0], $prefix)))
 		{
 			$target = array_shift($args);
@@ -507,7 +563,9 @@ class Factoids
 
 		if (empty($factoid))
 		{
-			Queue::fromContainer($container)->privmsg($source->getName(), $user->getNickname() . ', a factoid with that name does not exist.');
+			Queue::fromContainer($container)
+				->privmsg($source->getName(), $user->getNickname() . ', a factoid with that name does not exist.');
+
 			return;
 		}
 
@@ -522,8 +580,10 @@ class Factoids
 			$message .= ', last edited by ' . $editedBy . ' (' . $editedTime . ')';
 		$message .= '. Contents:';
 
-		Queue::fromContainer($container)->privmsg($source->getName(), $message);
-		Queue::fromContainer($container)->privmsg($source->getName(), $factoid->getContents());
+		Queue::fromContainer($container)
+			->privmsg($source->getName(), $message);
+		Queue::fromContainer($container)
+			->privmsg($source->getName(), $factoid->getContents());
 	}
 
 	/**
@@ -544,10 +604,13 @@ class Factoids
 		if (empty($message))
 		{
 			$telegram->sendMessage(['chat_id' => $chat_id, 'text' => 'No such factoid']);
+
 			return;
 		}
 		$telegram->sendMessage(['chat_id' => $chat_id, 'text' => $message]);
-		Queue::fromContainer($this->getContainer())->privmsg($channel, '[TG] Factoid "' . $key . '" requested by ' . $username);
-		Queue::fromContainer($this->getContainer())->privmsg($channel, $message);
+		Queue::fromContainer($this->getContainer())
+			->privmsg($channel, '[TG] Factoid "' . $key . '" requested by ' . $username);
+		Queue::fromContainer($this->getContainer())
+			->privmsg($channel, $message);
 	}
 }
