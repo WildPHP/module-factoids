@@ -32,6 +32,7 @@ use WildPHP\Core\ContainerTrait;
 use WildPHP\Core\DataStorage\DataStorageFactory;
 use WildPHP\Core\EventEmitter;
 use WildPHP\Core\Users\User;
+use WildPHP\Modules\TGRelay\TGCommandHandler;
 
 class Factoids
 {
@@ -97,11 +98,11 @@ class Factoids
 		CommandHandler::fromContainer($container)
 			->registerCommand('factoidinfo', [$this, 'factoidinfoCommand'], $commandHelp, 1, 2);
 
-		EventEmitter::fromContainer($container)
-			->on('telegram.command.factoid', [$this, 'factoidTGCommand']);
-
-		EventEmitter::fromContainer($container)
-			->on('telegram.command.f', [$this, 'factoidTGCommand']);
+		EventEmitter::fromContainer($container)->on('telegram.commands.add', function (TGCommandHandler $commandHandler)
+		{
+			$commandHandler->registerCommand('factoid', [$this, 'factoidTGCommand'], null, 0, 2);
+			$commandHandler->registerCommand('f', [$this, 'factoidTGCommand'], null, 0, 2);
+		});
 
 		$this->setContainer($container);
 	}

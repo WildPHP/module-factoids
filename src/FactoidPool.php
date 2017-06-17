@@ -13,8 +13,12 @@ use Collections\Collection;
 
 class FactoidPool extends Collection
 {
-	public function toSaveableArray()
+	/**
+	 * @return array
+	 */
+	public function toSaveableArray(): array
 	{
+		/** @var Factoid[] $factoids */
 		$factoids = $this->toArray();
 
 		$array = [];
@@ -24,6 +28,9 @@ class FactoidPool extends Collection
 		return $array;
 	}
 
+	/**
+	 * @param array $array
+	 */
 	public function populateFromSavedArray(array $array)
 	{
 		foreach ($array as $factoid)
