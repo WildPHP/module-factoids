@@ -100,8 +100,8 @@ class Factoids
 
 		EventEmitter::fromContainer($container)->on('telegram.commands.add', function (TGCommandHandler $commandHandler)
 		{
-			$commandHandler->registerCommand('factoid', [$this, 'factoidTGCommand'], null, 0, 2);
-			$commandHandler->registerCommand('f', [$this, 'factoidTGCommand'], null, 0, 2);
+			$commandHandler->registerCommand('factoid', [$this, 'factoidTGCommand'], null, 0, 3);
+			$commandHandler->registerCommand('f', [$this, 'factoidTGCommand'], null, 0, 3);
 		});
 
 		$this->setContainer($container);
