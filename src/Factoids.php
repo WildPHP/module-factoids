@@ -100,6 +100,9 @@ class Factoids
 		EventEmitter::fromContainer($container)
 			->on('telegram.command.factoid', [$this, 'factoidTGCommand']);
 
+		EventEmitter::fromContainer($container)
+			->on('telegram.command.f', [$this, 'factoidTGCommand']);
+
 		$this->setContainer($container);
 	}
 
