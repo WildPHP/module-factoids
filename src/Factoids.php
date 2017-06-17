@@ -261,7 +261,7 @@ class Factoids
 			$userNickname
 		], $factoid->getContents());
 
-		$message = !empty($nickname) ? $nickname . ': ' : '';
+		$message = !empty($nickname) && !stripos($factoid->getContents(), '$nick') ? $nickname . ': ' : '';
 		$message .= $contents;
 
 		return $message;
