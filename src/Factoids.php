@@ -115,7 +115,7 @@ class Factoids
 		foreach ($data as $factoidData)
 		{
 			$channel = $factoidData['channel'];
-			$pool = new FactoidPool('\WildPHP\Modules\Factoids\Factoid');
+			$pool = new FactoidPool();
 			$this->factoidPools[$channel] = $pool;
 
 			$pool->populateFromSavedArray($factoidData['pool']);
@@ -144,10 +144,10 @@ class Factoids
 		$channel = $incomingIrcMessage->getChannel();
 
 		if (!$this->poolExistsForChannelByString($channel))
-			$this->factoidPools[$channel] = new FactoidPool('\WildPHP\Modules\Factoids\Factoid');
+			$this->factoidPools[$channel] = new FactoidPool();
 
 		if (!$this->poolExistsForChannelByString('global'))
-			$this->factoidPools['global'] = new FactoidPool('\WildPHP\Modules\Factoids\Factoid');
+			$this->factoidPools['global'] = new FactoidPool();
 	}
 
 	/**
@@ -188,7 +188,7 @@ class Factoids
 	public function getPoolForChannelByString(string $channel): FactoidPool
 	{
 		if (!$this->poolExistsForChannelByString($channel))
-			$this->factoidPools[$channel] = new FactoidPool(Factoid::class);
+			$this->factoidPools[$channel] = new FactoidPool();
 
 		return $this->factoidPools[$channel];
 	}
@@ -222,7 +222,7 @@ class Factoids
 	 * @param string $target
 	 * @param string $userNickname
 	 *
-	 * @return bool|string
+	 * @return false|string
 	 */
 	public function getFactoidMessage(string $key, array $args, string $target, string $userNickname)
 	{
@@ -244,7 +244,7 @@ class Factoids
 				return $key == $factoid->getName();
 			});
 
-		if (empty($factoid))
+		if (empty($factoid) || !($factoid instanceof Factoid))
 			return false;
 
 		$at = array_shift($args);
