@@ -202,11 +202,10 @@ class Factoids
 		)
 			return;
 
-		$key = array_shift($args);
 		$nickname = count($args) > 0 ? $args[count($args) - 1] : '';
 
 		$target = $source->getName();
-		$factoid = $this->getFactoid($key, $target);
+		$factoid = $this->getFactoid($command, $target);
 		$message = $this->parseFactoidMessage($factoid, $target, $user->getNickname(), $nickname);
 
 		Queue::fromContainer($container)
