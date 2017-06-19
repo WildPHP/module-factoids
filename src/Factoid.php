@@ -1,5 +1,12 @@
 <?php
 /**
+ * Copyright 2017 The WildPHP Team
+ *
+ * You should have received a copy of the MIT license with the project.
+ * See the LICENSE file for more information.
+ */
+
+/**
  * Created by PhpStorm.
  * User: rick2
  * Date: 24-4-2017

@@ -51,4 +51,4 @@ The module will automatically save factoid state in JSON format, to a storage na
 These factoids will be restored on the next startup.
 
 ## License
-This module is licensed under the GNU General Public License, version 3. Please see `LICENSE` to read it.
+This module is licensed under the MIT license. Please see `LICENSE` to read it.
