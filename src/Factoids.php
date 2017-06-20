@@ -10,6 +10,8 @@
 namespace WildPHP\Modules\Factoids;
 
 
+use unreal4u\TelegramAPI\Telegram\Methods\SendMessage;
+use unreal4u\TelegramAPI\TgLog;
 use WildPHP\Core\Channels\Channel;
 use WildPHP\Core\Commands\CommandHandler;
 use WildPHP\Core\Commands\CommandHelp;
@@ -592,13 +594,13 @@ class Factoids
 	}
 
 	/**
-	 * @param \Telegram $telegram
+	 * @param TgLog $telegram
 	 * @param mixed $chat_id
 	 * @param array $args
 	 * @param string $channel
 	 * @param string $username
 	 */
-	public function factoidTGCommand(\Telegram $telegram, $chat_id, array $args, string $channel, string $username)
+	public function factoidTGCommand(TgLog $telegram, $chat_id, array $args, string $channel, string $username)
 	{
 		if (empty($args))
 			return;
@@ -609,12 +611,18 @@ class Factoids
 		$factoid = $this->getFactoid($key, $channel);
 		if (empty($factoid))
 		{
-			$telegram->sendMessage(['chat_id' => $chat_id, 'text' => 'No such factoid']);
+			$sendMessage = new SendMessage();
+			$sendMessage->chat_id = $chat_id;
+			$sendMessage->text = 'No such factoid exists.';
+			$telegram->performApiRequest($sendMessage);
 
 			return;
 		}
 		$message = $this->parseFactoidMessage($factoid, $channel, $username, $nickname);
-		$telegram->sendMessage(['chat_id' => $chat_id, 'text' => $message]);
+		$sendMessage = new SendMessage();
+		$sendMessage->chat_id = $chat_id;
+		$sendMessage->text = $message;
+		$telegram->performApiRequest($sendMessage);
 
 		if (!empty($channel))
 		{
