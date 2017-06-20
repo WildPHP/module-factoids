@@ -122,6 +122,10 @@ class Factoids
 		$dataStorage->flush();
 
 		$i = 0;
+		/**
+		 * @var string $channel
+		 * @var FactoidPool $pool
+		 */
 		foreach ($this->factoidPools as $channel => $pool)
 		{
 			$i++;
