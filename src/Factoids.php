@@ -210,6 +210,10 @@ class Factoids
 
 		$target = $source->getName();
 		$factoid = $this->getFactoid($command, $target);
+
+		if (!$factoid)
+			return;
+
 		$message = $this->parseFactoidMessage($factoid, $target, $user->getNickname(), $nickname);
 
 		Queue::fromContainer($container)
