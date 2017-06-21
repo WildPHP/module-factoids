@@ -24,6 +24,7 @@ use WildPHP\Core\DataStorage\DataStorageFactory;
 use WildPHP\Core\EventEmitter;
 use WildPHP\Core\Users\User;
 use WildPHP\Modules\TGRelay\TGCommandHandler;
+use WildPHP\Modules\TGRelay\TGRelay;
 
 class Factoids
 {
@@ -627,7 +628,7 @@ class Factoids
 		if (!empty($channel))
 		{
 			Queue::fromContainer($this->getContainer())
-				->privmsg($channel, '[TG] Factoid "' . $key . '" requested by ' . $username);
+				->privmsg($channel, '[TG] Factoid "' . $key . '" requested by ' . TGRelay::colorNickname($username));
 			Queue::fromContainer($this->getContainer())
 				->privmsg($channel, $message);
 		}
