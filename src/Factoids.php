@@ -11,7 +11,8 @@ namespace WildPHP\Modules\Factoids;
 
 
 use unreal4u\TelegramAPI\Telegram\Methods\SendMessage;
-use unreal4u\TelegramAPI\TgLog;
+use WildPHP\Modules\TGRelay\ChannelMap;
+use WildPHP\Modules\TGRelay\TgLog;
 use WildPHP\Core\Channels\Channel;
 use WildPHP\Core\Commands\CommandHandler;
 use WildPHP\Core\Commands\CommandHelp;
@@ -31,6 +32,8 @@ class Factoids
 	use ContainerTrait;
 
 	protected $factoidPools = [];
+
+	protected $telegramSupport = false;
 
 	/**
 	 * Factoids constructor.
@@ -99,6 +102,7 @@ class Factoids
 		{
 			$commandHandler->registerCommand('factoid', [$this, 'factoidTGCommand'], null, 0, 3);
 			$commandHandler->registerCommand('f', [$this, 'factoidTGCommand'], null, 0, 3);
+			$this->telegramSupport = true;
 		});
 
 		$this->setContainer($container);
@@ -221,6 +225,21 @@ class Factoids
 
 		Queue::fromContainer($container)
 			->privmsg($source->getName(), $message);
+
+		if ($this->telegramSupport)
+		{
+			$chat_id = ChannelMap::fromContainer($container)
+				->findIDForChannel($source->getName());
+
+			if (!$chat_id)
+				return;
+
+			$sendMessage = new SendMessage();
+			$sendMessage->text = $message;
+			$sendMessage->chat_id = $chat_id;
+			TgLog::fromContainer($container)
+				->performApiRequest($sendMessage);
+		}
 	}
 
 	/**
