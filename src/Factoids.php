@@ -9,7 +9,6 @@
 
 namespace WildPHP\Modules\Factoids;
 
-
 use unreal4u\TelegramAPI\Telegram\Methods\SendMessage;
 use WildPHP\Modules\TGRelay\ChannelMap;
 use WildPHP\Modules\TGRelay\TgLog;
@@ -339,7 +338,7 @@ class Factoids
 		$factoid->setContents($string);
 		$factoid->setCreatedByAccount($user->getIrcAccount());
 		$factoid->setCreatedTime(time());
-		$this->getPoolForChannelByString($target)->add($factoid);
+		$this->getPoolForChannelByString($target)->append($factoid);
 
 		Queue::fromContainer($container)
 			->privmsg($source->getName(),
@@ -375,10 +374,7 @@ class Factoids
 			return;
 		}
 
-		$factoid = $this->getPoolForChannelByString($target)->remove(function (Factoid $factoid) use ($key)
-		{
-			return $key == $factoid->getName();
-		});
+		$factoid = $this->getPoolForChannelByString($target)->findByKey($key);
 
 		if (empty($factoid))
 		{
@@ -387,6 +383,7 @@ class Factoids
 
 			return;
 		}
+		$this->getPoolForChannelByString($target)->remove($factoid);
 
 		Queue::fromContainer($container)
 			->privmsg($source->getName(),
@@ -459,7 +456,7 @@ class Factoids
 			return;
 		}
 
-		if (empty($factoidPool->toArray()))
+		if (empty($factoidPool->values()))
 		{
 			Queue::fromContainer($container)
 				->privmsg($source->getName(), 'There are no factoids for target "' . $target . '"');
@@ -468,7 +465,7 @@ class Factoids
 		}
 
 		/** @var Factoid[] $factoids */
-		$factoids = $factoidPool->toArray();
+		$factoids = $factoidPool->values();
 
 		$names = [];
 		foreach ($factoids as $factoid)
@@ -522,11 +519,8 @@ class Factoids
 			return;
 		}
 
-		$factoidPool->remove(function (Factoid $factoid) use ($key)
-		{
-			return $key == $factoid->getName();
-		});
-		$newFactoidPool->add($factoid);
+		$factoidPool->remove($factoid);
+		$newFactoidPool->append($factoid);
 
 		Queue::fromContainer($container)
 			->privmsg($source->getName(),

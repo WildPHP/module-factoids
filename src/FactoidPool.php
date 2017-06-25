@@ -9,7 +9,7 @@
 
 namespace WildPHP\Modules\Factoids;
 
-use Collections\Collection;
+use WildPHP\Core\Collection;
 
 class FactoidPool extends Collection
 {
@@ -24,7 +24,7 @@ class FactoidPool extends Collection
 	public function toSaveableArray(): array
 	{
 		/** @var Factoid[] $factoids */
-		$factoids = $this->toArray();
+		$factoids = $this->values();
 
 		$array = [];
 		foreach ($factoids as $factoid)
@@ -40,10 +40,12 @@ class FactoidPool extends Collection
 	 */
 	public function findByKey(string $key)
 	{
-		return $this->find(function (Factoid $factoid) use ($key)
-		{
-			return $key == $factoid->getName();
-		});
+		/** @var Factoid $value */
+		foreach ($this->values() as $value)
+			if ($value->getName() == $key)
+				return $value;
+
+		return false;
 	}
 
 	/**
@@ -64,7 +66,7 @@ class FactoidPool extends Collection
 			$obj->setEditedByAccount($factoid['editedByAccount']);
 			$obj->setLocked($factoid['locked']);
 			$obj->setContents($factoid['contents']);
-			$this->add($obj);
+			$this->append($obj);
 		}
 	}
 }
