@@ -207,8 +207,8 @@ class Factoids
 	public function displayFactoid(string $command, Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		if (CommandHandler::fromContainer($container)
-			->getCommandDictionary()
-			->keyExists($command)
+			->getCommandCollection()
+			->offsetExists($command)
 		)
 			return;
 
@@ -307,8 +307,8 @@ class Factoids
 		$string = implode(' ', $args);
 
 		if (CommandHandler::fromContainer($this->getContainer())
-			->getCommandDictionary()
-			->keyExists($key)
+			->getCommandCollection()
+			->offsetExists($key)
 		)
 		{
 			Queue::fromContainer($container)
