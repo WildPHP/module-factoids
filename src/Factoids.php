@@ -613,11 +613,16 @@ class Factoids
 
 			return;
 		}
+
 		$message = $this->parseFactoidMessage($factoid, $channel, $username, $nickname);
-		$sendMessage = new SendMessage();
-		$sendMessage->chat_id = $chat_id;
-		$sendMessage->text = $message;
-		$telegram->performApiRequest($sendMessage);
+
+		if (empty($channel))
+		{
+			$sendMessage = new SendMessage();
+			$sendMessage->chat_id = $chat_id;
+			$sendMessage->text = $message;
+			$telegram->performApiRequest($sendMessage);
+		}
 
 		if (!empty($channel))
 		{
