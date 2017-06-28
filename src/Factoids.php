@@ -10,7 +10,6 @@
 namespace WildPHP\Modules\Factoids;
 
 use unreal4u\TelegramAPI\Telegram\Methods\SendMessage;
-use WildPHP\Modules\TGRelay\TgLog;
 use WildPHP\Core\Channels\Channel;
 use WildPHP\Core\Commands\CommandHandler;
 use WildPHP\Core\Commands\CommandHelp;
@@ -23,6 +22,7 @@ use WildPHP\Core\DataStorage\DataStorageFactory;
 use WildPHP\Core\EventEmitter;
 use WildPHP\Core\Users\User;
 use WildPHP\Modules\TGRelay\TGCommandHandler;
+use WildPHP\Modules\TGRelay\TgLog;
 use WildPHP\Modules\TGRelay\TGRelay;
 
 class Factoids
@@ -364,7 +364,7 @@ class Factoids
 
 			return;
 		}
-		$this->getPoolForChannelByString($target)->remove($factoid);
+		$this->getPoolForChannelByString($target)->removeAll($factoid);
 
 		Queue::fromContainer($container)
 			->privmsg($source->getName(),
@@ -500,7 +500,7 @@ class Factoids
 			return;
 		}
 
-		$factoidPool->remove($factoid);
+		$factoidPool->removeAll($factoid);
 		$newFactoidPool->append($factoid);
 
 		Queue::fromContainer($container)

@@ -9,13 +9,14 @@
 
 namespace WildPHP\Modules\Factoids;
 
-use WildPHP\Core\Collection;
+use ValidationClosures\Types;
+use Yoshi2889\Collections\Collection;
 
 class FactoidPool extends Collection
 {
 	public function __construct()
 	{
-		parent::__construct(Factoid::class);
+		parent::__construct(Types::instanceof(Factoid::class));
 	}
 
 	/**

@@ -6,13 +6,6 @@
  * See the LICENSE file for more information.
  */
 
-/**
- * Created by PhpStorm.
- * User: rick2
- * Date: 24-4-2017
- * Time: 13:08
- */
-
 namespace WildPHP\Modules\Factoids;
 
 
