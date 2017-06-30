@@ -278,9 +278,7 @@ class Factoids
 	public function addfactoidCommand(Channel $source, User $user, array $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)
-			->get('serverConfig.chantypes')
-			->getValue();
+		$prefix = Configuration::fromContainer($container)['serverConfig']['chantypes'];
 		if ($args[0] == 'global' || Channel::isValidName($args[0], $prefix))
 			$target = array_shift($args);
 
@@ -337,9 +335,7 @@ class Factoids
 	public function removefactoidCommand(Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)
-			->get('serverConfig.chantypes')
-			->getValue();
+		$prefix = Configuration::fromContainer($container)['serverConfig']['chantypes'];
 		if ($args[0] == 'global' || Channel::isValidName($args[0], $prefix))
 		{
 			$target = array_shift($args);
@@ -381,9 +377,7 @@ class Factoids
 	public function editfactoidCommand(Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)
-			->get('serverConfig.chantypes')
-			->getValue();
+		$prefix = Configuration::fromContainer($container)['serverConfig']['chantypes'];
 		if ($args[0] == 'global' || Channel::isValidName($args[0], $prefix))
 		{
 			$target = array_shift($args);
@@ -421,9 +415,7 @@ class Factoids
 	public function listfactoidsCommand(Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)
-			->get('serverConfig.chantypes')
-			->getValue();
+		$prefix = Configuration::fromContainer($container)['serverConfig']['chantypes'];
 		if (!empty($args[0]) && ($args[0] == 'global' || Channel::isValidName($args[0], $prefix)))
 		{
 			$target = array_shift($args);
@@ -639,9 +631,7 @@ class Factoids
 	 */
 	public function findTargetForParams(array &$args, string &$target)
 	{
-		$prefix = Configuration::fromContainer($this->getContainer())
-			->get('serverConfig.chantypes')
-			->getValue();
+		$prefix = Configuration::fromContainer($this->getContainer())['serverConfig']['chantypes'];
 
 		if (!empty($args[0]) && ($args[0] == 'global' || Channel::isValidName($args[0], $prefix)))
 			$target = array_shift($args);
