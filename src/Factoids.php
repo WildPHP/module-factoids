@@ -15,15 +15,16 @@ use WildPHP\Core\Commands\CommandHandler;
 use WildPHP\Core\Commands\CommandHelp;
 use WildPHP\Core\ComponentContainer;
 use WildPHP\Core\Configuration\Configuration;
+use WildPHP\Core\Connection\IRCMessages\PRIVMSG;
 use WildPHP\Core\Connection\IRCMessages\RPL_ENDOFNAMES;
 use WildPHP\Core\Connection\Queue;
+use WildPHP\Core\Connection\TextFormatter;
 use WildPHP\Core\ContainerTrait;
 use WildPHP\Core\DataStorage\DataStorageFactory;
 use WildPHP\Core\EventEmitter;
 use WildPHP\Core\Users\User;
 use WildPHP\Modules\TGRelay\TGCommandHandler;
 use WildPHP\Modules\TGRelay\TgLog;
-use WildPHP\Modules\TGRelay\TGRelay;
 
 class Factoids
 {
@@ -618,8 +619,10 @@ class Factoids
 
 		if (!empty($channel))
 		{
+			$privmsg = new PRIVMSG($channel, '[TG] Factoid "' . $key . '" requested by ' . TextFormatter::consistentStringColor($username));
+			$privmsg->setMessageParameters(['relay_ignore']);
 			Queue::fromContainer($this->getContainer())
-				->privmsg($channel, '[TG] Factoid "' . $key . '" requested by ' . TGRelay::colorNickname($username));
+				->insertMessage($privmsg);
 			Queue::fromContainer($this->getContainer())
 				->privmsg($channel, $message);
 		}
