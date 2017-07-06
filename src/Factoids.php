@@ -22,11 +22,12 @@ use WildPHP\Core\Connection\TextFormatter;
 use WildPHP\Core\ContainerTrait;
 use WildPHP\Core\DataStorage\DataStorageFactory;
 use WildPHP\Core\EventEmitter;
+use WildPHP\Core\Modules\BaseModule;
 use WildPHP\Core\Users\User;
 use WildPHP\Modules\TGRelay\TGCommandHandler;
 use WildPHP\Modules\TGRelay\TgLog;
 
-class Factoids
+class Factoids extends BaseModule
 {
 	use ContainerTrait;
 
