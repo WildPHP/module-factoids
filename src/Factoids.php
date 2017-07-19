@@ -210,7 +210,10 @@ class Factoids extends BaseModule
 		)
 			return;
 
-		$nickname = count($args) > 0 ? $args[count($args) - 1] : '';
+		$nickname = count($args) > 0 ? implode(' ', array_filter($args, function (string $arg)
+		{
+			return $arg != '@';
+		})) : '';
 
 		$target = $source->getName();
 		$factoid = $this->getFactoid($command, $target);
