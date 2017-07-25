@@ -48,51 +48,51 @@ class Factoids extends BaseModule
 		$this->loadFactoidData();
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Adds a new factoid to the current (or other) channel. Usage #1: addfactoid [key] [string]');
-		$commandHelp->addPage('Usage #2: addfactoid [#channel] [key] [string]');
-		$commandHelp->addPage('Usage #3: addfactoid global [key] [string]');
+		$commandHelp->append('Adds a new factoid to the current (or other) channel. Usage #1: addfactoid [key] [string]');
+		$commandHelp->append('Usage #2: addfactoid [#channel] [key] [string]');
+		$commandHelp->append('Usage #3: addfactoid global [key] [string]');
 		CommandHandler::fromContainer($container)
 			->registerCommand('addfactoid', [$this, 'addfactoidCommand'], $commandHelp, 2, -1, 'addfactoid');
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Removes a factoid from the current (or other) channel. Usage #1: removefactoid [key]');
-		$commandHelp->addPage('Usage #2: removefactoid [#channel] [key]');
-		$commandHelp->addPage('Usage #3: removefactoid global [key] [string]');
+		$commandHelp->append('Removes a factoid from the current (or other) channel. Usage #1: removefactoid [key]');
+		$commandHelp->append('Usage #2: removefactoid [#channel] [key]');
+		$commandHelp->append('Usage #3: removefactoid global [key] [string]');
 		CommandHandler::fromContainer($container)
 			->registerCommand('removefactoid', [$this, 'removefactoidCommand'], $commandHelp, 1, 2, 'removefactoid');
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Edits a factoid to contain the specified string. Usage #1: editfactoid [key] [string]');
-		$commandHelp->addPage('Usage #2: editfactoid [#channel] [key] [string]');
-		$commandHelp->addPage('Usage #3: editfactoid global [key] [string]');
+		$commandHelp->append('Edits a factoid to contain the specified string. Usage #1: editfactoid [key] [string]');
+		$commandHelp->append('Usage #2: editfactoid [#channel] [key] [string]');
+		$commandHelp->append('Usage #3: editfactoid global [key] [string]');
 		CommandHandler::fromContainer($container)
 			->registerCommand('editfactoid', [$this, 'editfactoidCommand'], $commandHelp, 2, -1, 'editfactoid');
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Lists factoids in a given channel. Usage #1: listfactoids');
-		$commandHelp->addPage('Usage #2: listfactoids [#channel]');
-		$commandHelp->addPage('Usage #3: listfactoids global');
+		$commandHelp->append('Lists factoids in a given channel. Usage #1: listfactoids');
+		$commandHelp->append('Usage #2: listfactoids [#channel]');
+		$commandHelp->append('Usage #3: listfactoids global');
 		CommandHandler::fromContainer($container)
 			->registerCommand('listfactoids', [$this, 'listfactoidsCommand'], $commandHelp, 0, 1);
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Moves a factoid between channels. Usage #1: movefactoid [key] [#target_channel]');
-		$commandHelp->addPage('Usage #2: movefactoid [key] [#source_channel] [#target_channel]');
-		$commandHelp->addPage('Usage #3: movefactoid [key] global [#target_channel] (or reverse)');
+		$commandHelp->append('Moves a factoid between channels. Usage #1: movefactoid [key] [#target_channel]');
+		$commandHelp->append('Usage #2: movefactoid [key] [#source_channel] [#target_channel]');
+		$commandHelp->append('Usage #3: movefactoid [key] global [#target_channel] (or reverse)');
 		CommandHandler::fromContainer($container)
 			->registerCommand('movefactoid', [$this, 'movefactoidCommand'], $commandHelp, 2, 3, 'movefactoid');
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Renames a factoid. Usage #1: renamefactoid [key] [new name]');
-		$commandHelp->addPage('Usage #2: renamefactoid [#channel] [key] [new name]');
-		$commandHelp->addPage('Usage #3: renamefactoid global [key] [new name]');
+		$commandHelp->append('Renames a factoid. Usage #1: renamefactoid [key] [new name]');
+		$commandHelp->append('Usage #2: renamefactoid [#channel] [key] [new name]');
+		$commandHelp->append('Usage #3: renamefactoid global [key] [new name]');
 		CommandHandler::fromContainer($container)
 			->registerCommand('renamefactoid', [$this, 'renamefactoidCommand'], $commandHelp, 2, 3, 'renamefactoid');
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Displays info about a factoid. Usage #1: factoidinfo [key]');
-		$commandHelp->addPage('Usage #2: factoidinfo [#channel] [key]');
-		$commandHelp->addPage('Usage #3: factoidinfo global [key]');
+		$commandHelp->append('Displays info about a factoid. Usage #1: factoidinfo [key]');
+		$commandHelp->append('Usage #2: factoidinfo [#channel] [key]');
+		$commandHelp->append('Usage #3: factoidinfo global [key]');
 		CommandHandler::fromContainer($container)
 			->registerCommand('factoidinfo', [$this, 'factoidinfoCommand'], $commandHelp, 1, 2);
 
