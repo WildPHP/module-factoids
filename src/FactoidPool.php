@@ -14,6 +14,9 @@ use Yoshi2889\Collections\Collection;
 
 class FactoidPool extends Collection
 {
+	/**
+	 * FactoidPool constructor.
+	 */
 	public function __construct()
 	{
 		parent::__construct(Types::instanceof(Factoid::class));
