@@ -20,7 +20,6 @@ use WildPHP\Core\Connection\IRCMessages\RPL_ENDOFNAMES;
 use WildPHP\Core\Connection\Queue;
 use WildPHP\Core\Connection\TextFormatter;
 use WildPHP\Core\ContainerTrait;
-use WildPHP\Core\DataStorage\DataStorageFactory;
 use WildPHP\Core\EventEmitter;
 use WildPHP\Core\Modules\BaseModule;
 use WildPHP\Core\Users\User;
@@ -31,7 +30,7 @@ class Factoids extends BaseModule
 {
 	use ContainerTrait;
 
-	protected $factoidPools = [];
+	protected $factoidPoolCollection = null;
 
 	/**
 	 * Factoids constructor.
@@ -44,22 +43,32 @@ class Factoids extends BaseModule
 			->on('irc.command', [$this, 'displayFactoid']);
 		EventEmitter::fromContainer($container)
 			->on('irc.line.in.366', [$this, 'autoCreatePoolForChannel']);
-
-		$this->loadFactoidData();
+		
+		$this->factoidPoolCollection = new FactoidPoolCollection();
+		$this->factoidPoolCollection->loadStoredFactoids();
 
 		$commandHelp = new CommandHelp();
 		$commandHelp->append('Adds a new factoid to the current (or other) channel. Usage #1: addfactoid [key] [string]');
 		$commandHelp->append('Usage #2: addfactoid [#channel] [key] [string]');
 		$commandHelp->append('Usage #3: addfactoid global [key] [string]');
 		CommandHandler::fromContainer($container)
-			->registerCommand('addfactoid', [$this, 'addfactoidCommand'], $commandHelp, 2, -1, 'addfactoid');
+			->registerCommand('newfactoid', [$this, 'addfactoidCommand'], $commandHelp, 2, -1, 'addfactoid');
+		CommandHandler::fromContainer($container)->alias('newfactoid', 'addfactoid');
+		CommandHandler::fromContainer($container)->alias('newfactoid', '+factoid');
+		CommandHandler::fromContainer($container)->alias('newfactoid', 'nf');
+		CommandHandler::fromContainer($container)->alias('newfactoid', '+f');
 
 		$commandHelp = new CommandHelp();
 		$commandHelp->append('Removes a factoid from the current (or other) channel. Usage #1: removefactoid [key]');
 		$commandHelp->append('Usage #2: removefactoid [#channel] [key]');
 		$commandHelp->append('Usage #3: removefactoid global [key] [string]');
 		CommandHandler::fromContainer($container)
-			->registerCommand('removefactoid', [$this, 'removefactoidCommand'], $commandHelp, 1, 2, 'removefactoid');
+			->registerCommand('rmfactoid', [$this, 'removefactoidCommand'], $commandHelp, 1, 2, 'removefactoid');
+		CommandHandler::fromContainer($container)->alias('rmfactoid', 'removefactoid');
+		CommandHandler::fromContainer($container)->alias('rmfactoid', 'delfactoid');
+		CommandHandler::fromContainer($container)->alias('rmfactoid', '-factoid');
+		CommandHandler::fromContainer($container)->alias('rmfactoid', 'rmf');
+		CommandHandler::fromContainer($container)->alias('rmfactoid', '-f');
 
 		$commandHelp = new CommandHelp();
 		$commandHelp->append('Edits a factoid to contain the specified string. Usage #1: editfactoid [key] [string]');
@@ -67,6 +76,7 @@ class Factoids extends BaseModule
 		$commandHelp->append('Usage #3: editfactoid global [key] [string]');
 		CommandHandler::fromContainer($container)
 			->registerCommand('editfactoid', [$this, 'editfactoidCommand'], $commandHelp, 2, -1, 'editfactoid');
+		CommandHandler::fromContainer($container)->alias('editfactoid', 'edf');
 
 		$commandHelp = new CommandHelp();
 		$commandHelp->append('Lists factoids in a given channel. Usage #1: listfactoids');
@@ -74,6 +84,8 @@ class Factoids extends BaseModule
 		$commandHelp->append('Usage #3: listfactoids global');
 		CommandHandler::fromContainer($container)
 			->registerCommand('listfactoids', [$this, 'listfactoidsCommand'], $commandHelp, 0, 1);
+		CommandHandler::fromContainer($container)->alias('listfactoids', 'lsfactoids');
+		CommandHandler::fromContainer($container)->alias('listfactoids', 'lsf');
 
 		$commandHelp = new CommandHelp();
 		$commandHelp->append('Moves a factoid between channels. Usage #1: movefactoid [key] [#target_channel]');
@@ -81,6 +93,8 @@ class Factoids extends BaseModule
 		$commandHelp->append('Usage #3: movefactoid [key] global [#target_channel] (or reverse)');
 		CommandHandler::fromContainer($container)
 			->registerCommand('movefactoid', [$this, 'movefactoidCommand'], $commandHelp, 2, 3, 'movefactoid');
+		CommandHandler::fromContainer($container)->alias('movefactoid', 'mvfactoid');
+		CommandHandler::fromContainer($container)->alias('movefactoid', 'mvf');
 
 		$commandHelp = new CommandHelp();
 		$commandHelp->append('Renames a factoid. Usage #1: renamefactoid [key] [new name]');
@@ -88,6 +102,9 @@ class Factoids extends BaseModule
 		$commandHelp->append('Usage #3: renamefactoid global [key] [new name]');
 		CommandHandler::fromContainer($container)
 			->registerCommand('renamefactoid', [$this, 'renamefactoidCommand'], $commandHelp, 2, 3, 'renamefactoid');
+		CommandHandler::fromContainer($container)->alias('renamefactoid', 'rnfactoid');
+		CommandHandler::fromContainer($container)->alias('renamefactoid', 'rnf');
+		
 
 		$commandHelp = new CommandHelp();
 		$commandHelp->append('Displays info about a factoid. Usage #1: factoidinfo [key]');
@@ -95,6 +112,7 @@ class Factoids extends BaseModule
 		$commandHelp->append('Usage #3: factoidinfo global [key]');
 		CommandHandler::fromContainer($container)
 			->registerCommand('factoidinfo', [$this, 'factoidinfoCommand'], $commandHelp, 1, 2);
+		CommandHandler::fromContainer($container)->alias('factoidinfo', 'fi');
 
 		EventEmitter::fromContainer($container)->on('telegram.commands.add', function (TGCommandHandler $commandHandler)
 		{
@@ -105,39 +123,6 @@ class Factoids extends BaseModule
 		$this->setContainer($container);
 	}
 
-	public function loadFactoidData()
-	{
-		$dataStorage = DataStorageFactory::getStorage('factoidStorage');
-		$data = $dataStorage->getAll();
-
-		foreach ($data as $factoidData)
-		{
-			$channel = $factoidData['channel'];
-			$pool = new FactoidPool();
-			$this->factoidPools[$channel] = $pool;
-
-			$pool->populateFromSavedArray($factoidData['pool']);
-		}
-	}
-
-	public function saveFactoidData()
-	{
-		$dataStorage = DataStorageFactory::getStorage('factoidStorage');
-		$dataStorage->flush();
-
-		$i = 0;
-		/**
-		 * @var string $channel
-		 * @var FactoidPool $pool
-		 */
-		foreach ($this->factoidPools as $channel => $pool)
-		{
-			$i++;
-			$array = ['channel' => $channel, 'pool' => $pool->toSaveableArray()];
-			$dataStorage->set($i, $array);
-		}
-	}
-
 	/**
 	 * @param RPL_ENDOFNAMES $incomingIrcMessage
 	 */
@@ -145,54 +130,11 @@ class Factoids extends BaseModule
 	{
 		$channel = $incomingIrcMessage->getChannel();
 
-		if (!$this->poolExistsForChannelByString($channel))
-			$this->factoidPools[$channel] = new FactoidPool();
+		if (!$this->factoidPoolCollection->offsetExists($channel))
+			$this->factoidPoolCollection[$channel] = new FactoidPool();
 
-		if (!$this->poolExistsForChannelByString('global'))
-			$this->factoidPools['global'] = new FactoidPool();
-	}
-
-	/**
-	 * @param Channel $channel
-	 *
-	 * @return bool
-	 */
-	public function poolExistsForChannel(Channel $channel): bool
-	{
-		return array_key_exists($channel->getName(), $this->factoidPools);
-	}
-
-	/**
-	 * @param string $channel
-	 *
-	 * @return bool
-	 */
-	public function poolExistsForChannelByString(string $channel): bool
-	{
-		return array_key_exists($channel, $this->factoidPools);
-	}
-
-	/**
-	 * @param Channel $channel
-	 *
-	 * @return FactoidPool
-	 */
-	public function getPoolForChannel(Channel $channel): FactoidPool
-	{
-		return $this->getPoolForChannelByString($channel->getName());
-	}
-
-	/**
-	 * @param string $channel
-	 *
-	 * @return FactoidPool
-	 */
-	public function getPoolForChannelByString(string $channel): FactoidPool
-	{
-		if (!$this->poolExistsForChannelByString($channel))
-			$this->factoidPools[$channel] = new FactoidPool();
-
-		return $this->factoidPools[$channel];
+		if (!$this->factoidPoolCollection->offsetExists('global'))
+			$this->factoidPoolCollection['global'] = new FactoidPool();
 	}
 
 	/**
@@ -204,10 +146,7 @@ class Factoids extends BaseModule
 	 */
 	public function displayFactoid(string $command, Channel $source, User $user, $args, ComponentContainer $container)
 	{
-		if (CommandHandler::fromContainer($container)
-			->getCommandCollection()
-			->offsetExists($command)
-		)
+		if (CommandHandler::fromContainer($container)->getCommandCollection()->offsetExists($command))
 			return;
 
 		$nickname = count($args) > 0 ? implode(' ', array_filter($args, function (string $arg)
@@ -235,11 +174,11 @@ class Factoids extends BaseModule
 	 */
 	public function getFactoid(string $key, string $target = '')
 	{
-		if (!empty($target) && $this->poolExistsForChannelByString($target))
-			$factoid = $this->getPoolForChannelByString($target)->findByKey($key);
+		if (!empty($target) && $this->factoidPoolCollection->offsetExists($target))
+			$factoid = $this->factoidPoolCollection[$target]->findByKey($key);
 
 		if (empty($factoid))
-			$factoid = $this->getPoolForChannelByString('global')->findByKey($key);
+			$factoid = $this->factoidPoolCollection['global']->findByKey($key);
 
 		if (empty($factoid) || !($factoid instanceof Factoid))
 			return false;
@@ -283,9 +222,7 @@ class Factoids extends BaseModule
 	public function addfactoidCommand(Channel $source, User $user, array $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)['serverConfig']['chantypes'];
-		if ($args[0] == 'global' || Channel::isValidName($args[0], $prefix))
-			$target = array_shift($args);
+		$this->findTargetForParams($args, $target);
 
 		$key = array_shift($args);
 		$string = implode(' ', $args);
@@ -301,15 +238,15 @@ class Factoids extends BaseModule
 			return;
 		}
 
-		if (!$this->getPoolForChannelByString($target))
+		if (!$this->factoidPoolCollection->offsetExists($target))
 		{
 			Queue::fromContainer($container)
-				->privmsg($source->getName(), $user->getNickname() . ', a factoid pool for the given target does not exist.');
+				->privmsg($source->getName(), $user->getNickname() . ', a factoid pool for the given target does not exist. This should not happen!');
 
 			return;
 		}
 
-		if ($this->getPoolForChannelByString($target)->findByKey($key))
+		if ($this->factoidPoolCollection[$target]->findByKey($key))
 		{
 			Queue::fromContainer($container)
 				->privmsg($source->getName(), $user->getNickname() . ', a factoid with the same name already exists in this channel.');
@@ -322,13 +259,13 @@ class Factoids extends BaseModule
 		$factoid->setContents($string);
 		$factoid->setCreatedByAccount($user->getIrcAccount());
 		$factoid->setCreatedTime(time());
-		$this->getPoolForChannelByString($target)->append($factoid);
+		$this->factoidPoolCollection[$target]->append($factoid);
 
 		Queue::fromContainer($container)
 			->privmsg($source->getName(),
 				$user->getNickname() . ', successfully created factoid with key "' . $key . '" for target "' . $target . '".');
 
-		$this->saveFactoidData();
+		$this->factoidPoolCollection->saveFactoidData();
 	}
 
 	/**
@@ -340,15 +277,11 @@ class Factoids extends BaseModule
 	public function removefactoidCommand(Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)['serverConfig']['chantypes'];
-		if ($args[0] == 'global' || Channel::isValidName($args[0], $prefix))
-		{
-			$target = array_shift($args);
-		}
+		$this->findTargetForParams($args, $target);
 
 		$key = array_shift($args);
 
-		if (!$this->getPoolForChannelByString($target))
+		if (!$this->factoidPoolCollection[$target] ?? null)
 		{
 			Queue::fromContainer($container)
 				->privmsg($source->getName(), $user->getNickname() . ', a factoid pool for the given target does not exist.');
@@ -356,7 +289,8 @@ class Factoids extends BaseModule
 			return;
 		}
 
-		$factoid = $this->getPoolForChannelByString($target)->findByKey($key);
+		/** @var Factoid $factoid */
+		$factoid = $this->factoidPoolCollection[$target]->findByKey($key);
 
 		if (empty($factoid))
 		{
@@ -365,12 +299,12 @@ class Factoids extends BaseModule
 
 			return;
 		}
-		$this->getPoolForChannelByString($target)->removeAll($factoid);
+		$this->factoidPoolCollection[$target]->removeAll($factoid);
 
 		Queue::fromContainer($container)
 			->privmsg($source->getName(),
 				$user->getNickname() . ', successfully removed factoid with key "' . $key . '" for target "' . $target . '".');
-		$this->saveFactoidData();
+		$this->factoidPoolCollection->saveFactoidData();
 	}
 
 	/**
@@ -382,16 +316,13 @@ class Factoids extends BaseModule
 	public function editfactoidCommand(Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)['serverConfig']['chantypes'];
-		if ($args[0] == 'global' || Channel::isValidName($args[0], $prefix))
-		{
-			$target = array_shift($args);
-		}
+		$this->findTargetForParams($args, $target);
 
 		$key = array_shift($args);
 		$message = implode(' ', $args);
 
-		$factoid = $this->getPoolForChannelByString($target)->findByKey($key);
+		/** @var Factoid $factoid */
+		$factoid = $this->factoidPoolCollection[$target]->findByKey($key);
 
 		if (empty($factoid))
 		{
@@ -408,7 +339,7 @@ class Factoids extends BaseModule
 		Queue::fromContainer($container)
 			->privmsg($source->getName(),
 				$user->getNickname() . ', successfully edited factoid with key "' . $key . '" for target "' . $target . '".');
-		$this->saveFactoidData();
+		$this->factoidPoolCollection->saveFactoidData();
 	}
 
 	/**
@@ -420,13 +351,9 @@ class Factoids extends BaseModule
 	public function listfactoidsCommand(Channel $source, User $user, $args, ComponentContainer $container)
 	{
 		$target = $source->getName();
-		$prefix = Configuration::fromContainer($container)['serverConfig']['chantypes'];
-		if (!empty($args[0]) && ($args[0] == 'global' || Channel::isValidName($args[0], $prefix)))
-		{
-			$target = array_shift($args);
-		}
+		$this->findTargetForParams($args, $target);
 
-		if (!($factoidPool = $this->getPoolForChannelByString($target)))
+		if (!($factoidPool = $this->factoidPoolCollection[$target] ?? null))
 		{
 			Queue::fromContainer($container)
 				->privmsg($source->getName(), $user->getNickname() . ', a factoid pool for the given target does not exist.');
@@ -477,8 +404,8 @@ class Factoids extends BaseModule
 			$this->findTargetForParams($args, $newTarget);
 		}
 
-		$factoidPool = $this->getPoolForChannelByString($target);
-		$newFactoidPool = $this->getPoolForChannelByString($newTarget);
+		$factoidPool = $this->factoidPoolCollection[$target] ?? null;
+		$newFactoidPool = $this->factoidPoolCollection[$newTarget];
 
 		if (empty($factoidPool) || empty($newFactoidPool))
 		{
@@ -504,7 +431,7 @@ class Factoids extends BaseModule
 			->privmsg($source->getName(),
 				$user->getNickname() . ', successfully moved factoid with key "' . $key . '" from target "' . $target . '" to target "' . $newTarget .
 				'".');
-		$this->saveFactoidData();
+		$this->factoidPoolCollection->saveFactoidData();
 	}
 
 	/**
@@ -521,7 +448,8 @@ class Factoids extends BaseModule
 		$key = array_shift($args);
 		$newKey = array_shift($args);
 
-		$factoid = $this->getPoolForChannelByString($target)->findByKey($key);
+		/** @var Factoid $factoid */
+		$factoid = $this->factoidPoolCollection[$target]->findByKey($key);
 		if (empty($factoid))
 		{
 			Queue::fromContainer($container)
@@ -530,7 +458,7 @@ class Factoids extends BaseModule
 			return;
 		}
 
-		if ($this->getPoolForChannelByString($target)->findByKey($newKey))
+		if ($this->factoidPoolCollection[$target]->findByKey($newKey))
 		{
 			Queue::fromContainer($container)
 				->privmsg($source->getName(), $user->getNickname() . ', a factoid with that name already exists.');
@@ -542,7 +470,7 @@ class Factoids extends BaseModule
 		Queue::fromContainer($container)
 			->privmsg($source->getName(),
 				$user->getNickname() . ', successfully renamed factoid with key "' . $key . '" to "' . $newKey . '" for target "' . $target . '".');
-		$this->saveFactoidData();
+		$this->factoidPoolCollection->saveFactoidData();
 	}
 
 	/**
@@ -558,7 +486,8 @@ class Factoids extends BaseModule
 
 		$key = array_shift($args);
 
-		$factoid = $this->getPoolForChannelByString($target)->findByKey($key);
+		/** @var Factoid $factoid */
+		$factoid = $this->factoidPoolCollection[$target]->findByKey($key);
 
 		if (empty($factoid))
 		{
@@ -640,7 +569,7 @@ class Factoids extends BaseModule
 	{
 		$prefix = Configuration::fromContainer($this->getContainer())['serverConfig']['chantypes'];
 
-		if (!empty($args[0]) && ($args[0] == 'global' || Channel::isValidName($args[0], $prefix)))
+		if (!empty($args[0]) && ($args[0] == 'global' || (Channel::isValidName($args[0], $prefix)) && $this->factoidPoolCollection->offsetExists($args[0])))
 			$target = array_shift($args);
 	}
 
