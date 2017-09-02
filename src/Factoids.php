@@ -55,6 +55,17 @@ class Factoids extends BaseModule
 		$this->factoidPoolCollection->loadStoredFactoids();
 
 		$this->setContainer($container);
+		
+		EventEmitter::fromContainer($container)->on('telegram.commands.add', function (TGCommandHandler $commandHandler)
+		{
+			$commandHandler->registerCommand('factoid', new Command(
+				[$this, 'factoidTGCommand'],
+				new ParameterStrategy(1, -1, [
+					'key' => new StringParameter(),
+					'parameters' => new StringParameter(),
+				], true)
+			), ['f']);
+		});
 	}
 
 	public function registerCommands()
@@ -237,17 +248,6 @@ class Factoids extends BaseModule
 				'Usage #3: factoidinfo global [key]'
 			])
 		), ['fi']);
-
-		EventEmitter::fromContainer($container)->on('telegram.commands.add', function (TGCommandHandler $commandHandler)
-		{
-			$commandHandler->registerCommand('factoid', new Command(
-				[$this, 'factoidTGCommand'],
-				new ParameterStrategy(1, -1, [
-					'key' => new StringParameter(),
-					'parameters' => new StringParameter(),
-				], true)
-			), ['f']);
-		});
 	}
 
 	/**
@@ -633,8 +633,8 @@ class Factoids extends BaseModule
 		if (empty($args))
 			return;
 
-		$key = array_shift($args);
-		$nickname = count($args) > 0 ? $args[count($args) - 1] : '';
+		$key = $args['key'];
+		$nickname = count($args) > 0 ? end($args) : '';
 
 		$factoid = $this->getFactoid($key, $channel);
 		if (empty($factoid))

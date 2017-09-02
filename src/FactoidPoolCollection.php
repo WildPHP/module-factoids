@@ -15,6 +15,11 @@ use Yoshi2889\Collections\Collection;
 
 class FactoidPoolCollection extends Collection
 {
+	/**
+	 * FactoidPoolCollection constructor.
+	 *
+	 * @param array $initialValues
+	 */
 	public function __construct(array $initialValues = [])
 	{
 		parent::__construct(Types::instanceof(FactoidPool::class), $initialValues);
