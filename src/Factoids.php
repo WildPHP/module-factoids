@@ -323,18 +323,25 @@ class Factoids extends BaseModule
 	 */
 	public function parseFactoidMessage(Factoid $factoid, string $channel, string $senderNickname, string $nickname = '')
 	{
-		$msg = str_ireplace([
-			'$nick',
-			'$channel',
-			'$sender'
-		], [
-			!empty($nickname) ? $nickname : $senderNickname,
-			$channel,
-			$senderNickname
-		], $factoid->getContents());
+	    if (stripos($factoid->getContents(), '$noparse') !== false)
+        {
+            $msg = trim(str_ireplace('$noparse', '', $factoid->getContents()));
+        }
+        else
+        {
+            $msg = str_ireplace([
+                '$nick',
+                '$channel',
+                '$sender'
+            ], [
+                !empty($nickname) ? $nickname : $senderNickname,
+                $channel,
+                $senderNickname
+            ], $factoid->getContents());
 
-		if (!empty($nickname) && !stripos($factoid->getContents(), '$nick'))
-			$msg = $nickname . ': ' . $msg;
+            if (!empty($nickname) && !stripos($factoid->getContents(), '$nick'))
+                $msg = $nickname . ': ' . $msg;
+        }
 
 		return $msg;
 	}
