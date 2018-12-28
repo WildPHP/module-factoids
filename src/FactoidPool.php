@@ -46,7 +46,7 @@ class FactoidPool extends Collection
 	{
 		/** @var Factoid $value */
 		foreach ($this->values() as $value)
-			if ($value->getName() == $key)
+			if (strtolower($value->getName()) == strtolower($key))
 				return $value;
 
 		return false;
